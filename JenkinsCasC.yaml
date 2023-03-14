@@ -84,10 +84,10 @@ unclassified:
     - credentialsId: 'GitHub-Access-Token'
       manageHooks: false
       name: 'myGitHub'
-    hookUrl: 'http://${ENV_ALB_DNS}/github-webhook/'
+    hookUrl: 'http://ENV_ALB_DNS/github-webhook/'
   location:
     adminAddress: 'address not configured yet <nobody@nowhere>'
-    url: 'http://${ENV_ALB_DNS}/'
+    url: 'http://ENV_ALB_DNS/'
   pollSCM:
     pollingThreadCount: 10
 tool:
