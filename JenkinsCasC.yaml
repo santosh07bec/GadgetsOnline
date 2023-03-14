@@ -40,7 +40,7 @@ jenkins:
   # - envVars:
   #     env:
   #     - key: ALB_DNS
-  #       value: ${ENV_ALB_DNS}
+  #       value: ENV_ALB_DNS
   securityRealm:
     local:
       allowsSignup: false
