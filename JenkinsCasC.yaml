@@ -1,5 +1,5 @@
 # Dependency:
-# ENV Variable 'ENV_ALB_DNS' with ALB DNS name of Jenkins Master
+# Replace '<ENV_ALB_DNS>' placeholder with ALB DNS name of Jenkins Master
 # The plugin will default to looking for a single config file in $JENKINS_HOME/jenkins.yaml
 credentials:
   system:
@@ -40,7 +40,7 @@ jenkins:
   # - envVars:
   #     env:
   #     - key: ALB_DNS
-  #       value: ENV_ALB_DNS
+  #       value: <ENV_ALB_DNS>
   securityRealm:
     local:
       allowsSignup: false
@@ -48,6 +48,7 @@ jenkins:
       users:
       - id: 'admin'
         name: 'admin'
+        password: ${Jenkins-Password}
         properties:
         - 'myView'
         - preferredProvider:
@@ -84,10 +85,10 @@ unclassified:
     - credentialsId: 'GitHub-Access-Token'
       manageHooks: false
       name: 'myGitHub'
-    hookUrl: 'http://ENV_ALB_DNS/github-webhook/'
+    hookUrl: 'http://<ENV_ALB_DNS>/github-webhook/'
   location:
     adminAddress: 'address not configured yet <nobody@nowhere>'
-    url: 'http://ENV_ALB_DNS/'
+    url: 'http://<ENV_ALB_DNS>/'
   pollSCM:
     pollingThreadCount: 10
 tool:
