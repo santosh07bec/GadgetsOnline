@@ -1,0 +1,98 @@
+# Dependency:
+# ENV Variable 'ENV_ALB_DNS' with ALB DNS name of Jenkins Master
+# The plugin will default to looking for a single config file in $JENKINS_HOME/jenkins.yaml
+credentials:
+  system:
+    domainCredentials:
+    - credentials:
+      - string:
+          description: 'Github Token - For Jenkins Integration'
+          id: 'GitHub-Access-Token'
+          scope: GLOBAL
+          secret: '${GitHub-Access-Token}'
+      - basicSSHUserPrivateKey:
+          id: 'GitRepo_Integration_Key'
+          privateKeySource:
+            directEntry:
+              privateKey: '${GitRepo-Integration-Key}'
+          scope: GLOBAL
+          username: 'git'
+      - basicSSHUserPrivateKey:
+          description: 'EC2 Ubuntu Agent ip-172-31-25-34'
+          id: 'Ubuntu-agent-ip-172-31-25-34'
+          privateKeySource:
+            directEntry:
+              privateKey: '${Node-Integration-Key}'
+          scope: GLOBAL
+          username: 'ubuntu'
+jenkins:
+  agentProtocols:
+  - 'JNLP4-connect'
+  - 'Ping'
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+  crumbIssuer:
+    standard:
+      excludeClientIPFromCrumb: false
+  disableRememberMe: false
+  # globalNodeProperties:
+  # - envVars:
+  #     env:
+  #     - key: ALB_DNS
+  #       value: ${ENV_ALB_DNS}
+  securityRealm:
+    local:
+      allowsSignup: false
+      enableCaptcha: false
+      users:
+      - id: 'admin'
+        name: 'admin'
+        properties:
+        - 'myView'
+        - preferredProvider:
+            providerId: 'default'
+        - timezone:
+            timeZoneName: 'Asia/Kolkata'
+        - mailer:
+            emailAddress: 'ec2-jenkins@ec2.com'
+        - 'apiToken'
+  slaveAgentPort: 3622
+  updateCenter:
+    sites:
+    - id: 'default'
+      url: 'https://updates.jenkins.io/update-center.json'
+  views:
+  - all:
+      name: 'all'
+  viewsTabBar: 'standard'
+security:
+  gitHostKeyVerificationConfiguration:
+    sshHostKeyVerificationStrategy: 'knownHostsFileVerificationStrategy'
+  sSHD:
+    port: -1
+unclassified:
+  buildDiscarders:
+    configuredBuildDiscarders:
+    - 'jobBuildDiscarder'
+  buildStepOperation:
+    enabled: false
+  gitHubConfiguration:
+    apiRateLimitChecker: ThrottleForNormalize
+  gitHubPluginConfig:
+    configs:
+    - credentialsId: 'GitHub-Access-Token'
+      manageHooks: false
+      name: 'myGitHub'
+    hookUrl: 'http://${ENV_ALB_DNS}/github-webhook/'
+  location:
+    adminAddress: 'address not configured yet <nobody@nowhere>'
+    url: 'http://${ENV_ALB_DNS}/'
+  pollSCM:
+    pollingThreadCount: 10
+tool:
+  git:
+    installations:
+    - home: 'git'
+      name: 'Default'
+
