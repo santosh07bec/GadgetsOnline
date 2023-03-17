@@ -5,8 +5,7 @@ pipeline {
         stage('Install') {
             steps {
                 echo 'Check for docker and buildx plugin and install if not already installed.'
-                sh '''
-                whoami && id
+                sh '''env
                 if ! which docker >/dev/null 2>&1; then sudo yum install docker -y; fi
                 if ! [[ $(systemctl show --property ActiveState docker) =~ \'active\' ]]; then sudo systemctl enable docker --now; fi
                 if ! docker buildx ls >/dev/null 2>&1; then
@@ -34,21 +33,43 @@ pipeline {
                 aws ecr get-login-password --region $REGION | $DOCKER login --username AWS --password-stdin $ECR_Repo
                 $DOCKER buildx build -t $ECR_Repo:$BUILD_ID --platform linux/amd64,linux/arm64 --builder jenkins \
                 --build-arg BUILDKIT_MULTI_PLATFORM=1 -f ./GadgetsOnline/Dockerfile --push .
-                env'''
+                '''
             }
         }
         stage('Test') {
             steps {
-                echo 'Testing..'
-                echo 'Done!'
+                echo 'Test 1: Checking if image is multi-arch'
+                sh '''
+                DOCKER='docker --config ./docker-buildx-config'
+                PLATFORMS=$($DOCKER buildx imagetools inspect $ECR_Repo:$BUILD_ID --format "{{json .Manifest}}" | jq ".manifests[].platform.architecture" | xargs)
+                if [[ $PLATFORMS =~ "arm" ]] && [[ $PLATFORMS =~ "amd" ]]; then
+                  echo "Image is multi-arch. Test PASSED!!"
+                else
+                  echo "Image is not multi-arch. Test FAILED."
+                  exit 1
+                fi
+                '''
+                echo 'Test 2: Checking if container is being created from the image.'
+                sh '''
+                DOCKER='docker --config ./docker-buildx-config'
+                $DOCKER run -d -p 8888:80 $ECR_Repo:$BUILD_ID
+                if [[ $(curl -s -o /dev/null -I -w "%{http_code}" localhost:8888) == "200" ]]; then
+                  echo "Container launched successfully. Test PASSED!!"
+                else
+                  echo "Container could not launch successfully. Test Failed."
+                  exit 1
+                fi
+                '''
             }
         }
         stage('Cleanup') {
             steps {
                 echo 'Deleting Workspace'
                 sh '''
+                DOCKER='docker --config ./docker-buildx-config'
+                $DOCKER system prune -af
                 ls -ld ${WORKSPACE}*
-                rm -rf ${WORKSPACE}*
+                ls -d ${WORKSPACE}* | xargs -d"\n" rm -rf
                 '''
             }
         }
