@@ -66,16 +66,16 @@ pipeline {
                 '''
             }
         }
-        stage('Cleanup') {
-            steps {
-                echo 'Deleting Workspace'
+    }
+    post {
+        always {
+            echo 'Deleting Workspace'
                 sh '''
                 DOCKER='docker --config ./docker-buildx-config'
                 $DOCKER system prune -af
                 ls -ld ${WORKSPACE}*
                 ls -d ${WORKSPACE}* | xargs -d"\n" rm -rf
                 '''
-            }
         }
     }
 }
