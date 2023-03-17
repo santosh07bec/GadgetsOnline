@@ -4,6 +4,7 @@ pipeline {
     stages {
         stage('Install') {
             steps {
+                echo 'Check for docker and buildx plugin and install if not already installed.'
                 sh '''if ! which docker >/dev/null 2>&1; then sudo yum install docker -y; fi
                 if ! [[ $(systemctl show --property ActiveState docker) =~ \'active\' ]]; then sudo systemctl enable docker --now; fi
                 if ! docker buildx ls >/dev/null 2>&1; then
@@ -20,10 +21,10 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh '''echo $(pwd)
-                ls -l
-                echo \'to know where it is registered\'
-                tree .
+                echo 'Building Docker Image'
+                sh '''
+                docker buildx build -t $ECR_Repo:$BUILD_ID --platform linux/amd64,linux/arm64 --builder $HOSTNAME \
+                --build-arg BUILDKIT_MULTI_PLATFORM=1 -f ./GadgetsOnline/Dockerfile --push .
                 env'''
             }
         }
