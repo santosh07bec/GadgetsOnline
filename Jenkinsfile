@@ -6,6 +6,8 @@ pipeline {
             steps {
                 echo 'Check for docker and buildx plugin and install if not already installed.'
                 sh '''
+                whoami
+                id
                 docker buildx ls
                 if ! which docker >/dev/null 2>&1; then sudo yum install docker -y; fi
                 if ! [[ $(systemctl show --property ActiveState docker) =~ \'active\' ]]; then sudo systemctl enable docker --now; fi
