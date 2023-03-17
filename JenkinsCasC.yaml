@@ -17,6 +17,7 @@ credentials:
               privateKey: '${GitRepo-Integration-Key}'
           scope: GLOBAL
           username: 'git'
+          description: 'GitRepo Integration Key'
       - basicSSHUserPrivateKey:
           description: 'EC2 Ubuntu Agent ip-172-31-25-34'
           id: 'Ubuntu-agent-ip-172-31-25-34'
