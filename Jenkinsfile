@@ -53,7 +53,9 @@ pipeline {
                 sh '''
                 DOCKER='docker --config ./docker-buildx-config'
                 $DOCKER run -d -p 8888:80 $ECR_Repo:$BUILD_ID
-                if [[ $(curl -s -o /dev/null -I -w "%{http_code}" localhost:8888) == "200" ]]; then
+                HTTP_RESP=$(curl -s -o /dev/null -I -w "%{http_code}" localhost:8888)
+                $DOCKER stop $($DOCKER ps -q --filter="ancestor=$ECR_Repo:$BUILD_ID")
+                if [[ $HTTP_RESP == "200" ]]; then
                   echo "Container launched successfully. Test PASSED!!"
                 else
                   echo "Container could not launch successfully. Test Failed."
