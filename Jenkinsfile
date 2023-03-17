@@ -23,7 +23,8 @@ pipeline {
                 sh '''echo $(pwd)
                 ls -l
                 echo \'to know where it is registered\'
-                tree .'''
+                tree .
+                env'''
             }
         }
         stage('Test') {
