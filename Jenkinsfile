@@ -29,7 +29,7 @@ pipeline {
                 $DOCKER buildx create --name jenkins --use
                 $DOCKER buildx inspect --bootstrap
                 $DOCKER buildx ls
-                $DOCKER buildx build -t $ECR_Repo:$BUILD_ID --platform linux/amd64,linux/arm64 --builder $HOSTNAME \
+                $DOCKER buildx build -t $ECR_Repo:$BUILD_ID --platform linux/amd64,linux/arm64 --builder jenkins \
                 --build-arg BUILDKIT_MULTI_PLATFORM=1 -f ./GadgetsOnline/Dockerfile --push .
                 env'''
             }
