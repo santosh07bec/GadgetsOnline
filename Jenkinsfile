@@ -31,7 +31,7 @@ pipeline {
                 $DOCKER buildx create --name jenkins --use
                 $DOCKER buildx inspect --bootstrap
                 $DOCKER buildx ls
-                aws ecr get-login-password --region $REGION | sudo docker login --username AWS --password-stdin $ECR_Repo
+                aws ecr get-login-password --region $REGION | $DOCKER login --username AWS --password-stdin $ECR_Repo
                 $DOCKER buildx build -t $ECR_Repo:$BUILD_ID --platform linux/amd64,linux/arm64 --builder jenkins \
                 --build-arg BUILDKIT_MULTI_PLATFORM=1 -f ./GadgetsOnline/Dockerfile --push .
                 env'''
