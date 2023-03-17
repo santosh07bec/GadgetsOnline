@@ -66,6 +66,11 @@ pipeline {
                 '''
             }
         }
+        stage('Deploy') {
+            steps {
+                echo 'Deploying image to EKS'
+            }
+        }
     }
     post {
         always {
