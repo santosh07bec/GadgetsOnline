@@ -25,10 +25,13 @@ pipeline {
             steps {
                 echo 'Building Docker Image'
                 sh '''
-                DOCKER="docker --config ./docker-buildx-config"
+                # REGION=$(curl -s 169.254.169.254/latest/meta-data/placement/region)
+                REGION='us-east-1'
+                DOCKER='docker --config ./docker-buildx-config'
                 $DOCKER buildx create --name jenkins --use
                 $DOCKER buildx inspect --bootstrap
                 $DOCKER buildx ls
+                aws ecr get-login-password --region $REGION | sudo docker login --username AWS --password-stdin $ECR_Repo
                 $DOCKER buildx build -t $ECR_Repo:$BUILD_ID --platform linux/amd64,linux/arm64 --builder jenkins \
                 --build-arg BUILDKIT_MULTI_PLATFORM=1 -f ./GadgetsOnline/Dockerfile --push .
                 env'''
