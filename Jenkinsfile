@@ -52,9 +52,11 @@ pipeline {
                 echo 'Test 2: Checking if container is being created from the image.'
                 sh '''
                 DOCKER='docker --config ./docker-buildx-config'
-                $DOCKER run -d -p 8888:80 $ECR_Repo:$BUILD_ID
+                DOCKER_ID=$($DOCKER run -d -p 8888:80 $ECR_Repo:$BUILD_ID)
+                sleep 5
                 HTTP_RESP=$(curl -s -o /dev/null -I -w "%{http_code}" localhost:8888)
-                $DOCKER stop $($DOCKER ps -q --filter="ancestor=$ECR_Repo:$BUILD_ID")
+                # $DOCKER stop $($DOCKER ps -q --filter="ancestor=$ECR_Repo:$BUILD_ID")
+                $DOCKER stop $DOCKER_ID
                 if [[ $HTTP_RESP == "200" ]]; then
                   echo "Container launched successfully. Test PASSED!!"
                 else
