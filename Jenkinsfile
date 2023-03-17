@@ -40,5 +40,14 @@ pipeline {
                 echo 'Done!'
             }
         }
+        stage('Cleanup') {
+            steps {
+                echo 'Deleting Workspace'
+                sh '''
+                ls -ld ${WORKSPACE}*
+                rm -rf ${WORKSPACE}*
+                '''
+            }
+        }
     }
 }
