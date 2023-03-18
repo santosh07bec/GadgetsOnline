@@ -67,7 +67,16 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                echo 'Deploying image to EKS'
+                withAWS(credentials: 'IAM-Admin-Credential') {
+                  sh '''
+                  export AWS_REGION=$(curl -s 169.254.169.254/latest/meta-data/placement/region)
+                  aws sts get-caller-identity
+                  aws eks update-kubeconfig --name eks-cluster
+                  kubectl get pod --all-namespaces
+                  sed -ie 's/nginx:latest/$Docker_Image/' ./EKSDeployment.yaml
+                  kubectl apply -f ./EKSDeployment.yaml
+                  '''
+                }
             }
         }
     }
