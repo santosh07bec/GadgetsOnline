@@ -24,8 +24,7 @@ pipeline {
             steps {
                 echo 'Building Docker Image'
                 sh '''
-                # REGION=$(curl -s 169.254.169.254/latest/meta-data/placement/region)
-                REGION='us-east-1'
+                REGION=$(curl -s 169.254.169.254/latest/meta-data/placement/region)
                 DOCKER='docker --config ./docker-buildx-config'
                 $DOCKER buildx create --name jenkins --use
                 $DOCKER buildx inspect --bootstrap
