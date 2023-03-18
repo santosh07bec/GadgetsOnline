@@ -9,7 +9,7 @@ pipeline {
                 if ! which docker >/dev/null 2>&1; then sudo yum install docker -y; fi
                 if ! [[ $(systemctl show --property ActiveState docker) =~ \'active\' ]]; then sudo systemctl enable docker --now; fi
                 if ! docker buildx ls >/dev/null 2>&1; then
-                  sudo docker run -d -it docker/buildx-bin bash >/dev/null 2>&1
+                  sudo docker run -d -it docker/buildx-bin bash >/dev/null 2>&1 || true
                   CONTAINER=$(sudo docker ps -a --filter=ancestor=docker/buildx-bin | awk \'{print $1}\' | tail -1)
                   mkdir -p /usr/libexec/docker/cli-plugins/
                   sudo docker cp $CONTAINER:/buildx /usr/libexec/docker/cli-plugins/docker-buildx
