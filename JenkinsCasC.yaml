@@ -26,6 +26,12 @@ credentials:
               privateKey: '${Node-Integration-Key}'
           scope: GLOBAL
           username: 'ubuntu'
+      - usernamePassword:
+          description: "AWS IAM-Admin Credential"
+          id: "IAM-Admin-Credential"
+          scope: GLOBAL
+          username: ${IAM-Admin-Access-Key-ID}
+          password: ${IAM-User-Secret-Access-Key}
 jenkins:
   agentProtocols:
   - 'JNLP4-connect'
