@@ -73,7 +73,7 @@ pipeline {
                   aws sts get-caller-identity
                   aws eks update-kubeconfig --name $EKS_Cluster
                   kubectl get pod --all-namespaces
-                  sed -ie "s/nginx:latest/$Docker_Image/" ./EKSDeployment.yaml
+                  sed -ie "\"s/nginx:latest/$Docker_Image/\"" ./EKSDeployment.yaml
                   kubectl apply -f ./EKSDeployment.yaml
                   '''
                 }
