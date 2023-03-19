@@ -1,3 +1,8 @@
+// ENV Variable needed by this Jenkinsfile
+// $ECR_Repo $EKS_Cluster $DockerImage
+// Jenkins default ENV Variable used:
+// $BUILD_ID
+
 pipeline {
     agent any
     
@@ -14,8 +19,6 @@ pipeline {
                   mkdir -p /usr/libexec/docker/cli-plugins/
                   sudo docker cp $CONTAINER:/buildx /usr/libexec/docker/cli-plugins/docker-buildx
                   sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-                  sudo docker buildx create --name $HOSTNAME --use
-                  sudo docker buildx inspect --bootstrap
                   sudo docker buildx ls
                 fi'''
             }
@@ -65,15 +68,13 @@ pipeline {
                 '''
             }
         }
-        stage('Deploy') {
+        stage('Deploy to EKS') {
             steps {
                 withAWS(credentials: 'IAM-Admin-Credential') {
                   sh '''
                   export AWS_REGION=$(curl -s 169.254.169.254/latest/meta-data/placement/region)
-                  aws sts get-caller-identity
                   aws eks update-kubeconfig --name $EKS_Cluster
                   kubectl get pod --all-namespaces
-                  DockerImage=$Docker_Image
                   sed -ie "/image:/s_nginx:latest_${DockerImage}_" ./EKSDeployment.yaml
                   kubectl apply -f ./EKSDeployment.yaml
                   '''
