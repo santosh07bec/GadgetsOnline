@@ -80,7 +80,7 @@ pipeline {
                   yq "select(documentIndex == 1)|.spec.template.spec.containers[0].env += \
                   {\\\"name\\\": \\\"IMAGE_TAG\\\", \\\"value\\\": \\\"$BUILD_ID\\\"}" EKSDeployment.yaml | kubectl apply -f - 
                   # kubectl apply -f ./EKSDeployment.yaml
-                  kubectl svc,pod -o wide
+                  kubectl get svc,pod -o wide
                   '''
                 }
             }
