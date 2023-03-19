@@ -76,8 +76,11 @@ pipeline {
                   aws eks update-kubeconfig --name $EKS_Cluster
                   kubectl get pod --all-namespaces
                   sed -ie "/image:/s_nginx:latest_${DockerImage}_" ./EKSDeployment.yaml
-                  kubectl apply -f ./EKSDeployment.yaml
-                  kubectl get service
+                  yq 'select(documentIndex == 0)' EKSDeployment.yaml | kubectl apply -f -
+                  yq "select(documentIndex == 1)|.spec.template.spec.containers[0].env += {\"name\": \"IMAGE_TAG\", \"value\": $BUILD_ID}" EKSDeployment.yaml \
+                  | kubectl apply -f - 
+                  # kubectl apply -f ./EKSDeployment.yaml
+                  kubectl svc,pod -o wide
                   '''
                 }
             }
