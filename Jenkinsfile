@@ -77,6 +77,7 @@ pipeline {
                   kubectl get pod --all-namespaces
                   sed -ie "/image:/s_nginx:latest_${DockerImage}_" ./EKSDeployment.yaml
                   kubectl apply -f ./EKSDeployment.yaml
+                  kubectl get service
                   '''
                 }
             }
