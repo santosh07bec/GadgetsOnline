@@ -74,7 +74,7 @@ pipeline {
                   aws eks update-kubeconfig --name $EKS_Cluster
                   kubectl get pod --all-namespaces
                   DockerImage=$Docker_Image
-                  sed -ie "/image:/s_nginx:latest_$DockerImage_" ./EKSDeployment.yaml
+                  sed -ie "/image:/s_nginx:latest_${DockerImage}_" ./EKSDeployment.yaml
                   kubectl apply -f ./EKSDeployment.yaml
                   '''
                 }
