@@ -21,7 +21,6 @@ namespace GadgetsOnline.Controllers
         }
 
         private static readonly Dictionary<string, string> metadataCache = new Dictionary<string, string>();
-
         private static string GetMetadataValue(string path)
         {
             if (!metadataCache.ContainsKey(path))
