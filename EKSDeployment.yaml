@@ -45,3 +45,4 @@ spec:
             cpu: "2"
           limits:
             memory: "2048Mi"
+            cpu: "2"
