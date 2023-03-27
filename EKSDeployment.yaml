@@ -27,6 +27,16 @@ spec:
       labels:
         app: gadgets-online
     spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - arm64
+            topologyKey: kubernetes.io/arch
       containers:
       - name: gadgets-online
         image: nginx:latest
