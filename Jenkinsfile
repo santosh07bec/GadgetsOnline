@@ -10,7 +10,8 @@ pipeline {
         stage('Install') {
             steps {
                 echo 'Check for docker and buildx plugin and install if not already installed.'
-                sh '''env
+                sh '''
+                # env
                 if ! which docker >/dev/null 2>&1; then sudo yum install docker -y; fi
                 if ! [[ $(systemctl show --property ActiveState docker) =~ \'active\' ]]; then sudo systemctl enable docker --now; fi
                 if ! docker buildx ls >/dev/null 2>&1; then
