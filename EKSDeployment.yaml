@@ -28,15 +28,14 @@ spec:
         app: gadgets-online
     spec:
       affinity:
-        podAffinity:
+        nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
+            nodeSelectorTerms:
+            - matchExpressions:
               - key: kubernetes.io/arch
                 operator: In
                 values:
                 - arm64
-            topologyKey: kubernetes.io/arch
       containers:
       - name: gadgets-online
         image: nginx:latest
@@ -52,7 +51,7 @@ spec:
         resources:
           requests:
             memory: "2048Mi"
-            cpu: "2"
+            cpu: "1"
           limits:
             memory: "2048Mi"
-            cpu: "2"
+            cpu: "1"
