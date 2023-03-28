@@ -44,12 +44,12 @@ namespace GadgetsOnline.Models
                 if (databaseMode == "config")
                 {
                     optionsBuilder.UseMySQL(ConfigurationManager.Configuration.GetConnectionString("GadgetsOnlineEntities"));
-                    Console.WriteLine(ConfigurationManager.Configuration.GetConnectionString("GadgetsOnlineEntities"));
+                    //Console.WriteLine(ConfigurationManager.Configuration.GetConnectionString("GadgetsOnlineEntities"));
                 }
                 else if (databaseMode == "env")
                 {
                     optionsBuilder.UseMySQL(Environment.GetEnvironmentVariable("GadgetsOnlineEntities").Trim('"'));
-                    Console.WriteLine(Environment.GetEnvironmentVariable("GadgetsOnlineEntities").Trim('"'));
+                    //Console.WriteLine(Environment.GetEnvironmentVariable("GadgetsOnlineEntities").Trim('"'));
                 }
                 else
                 {
