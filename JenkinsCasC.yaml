@@ -26,6 +26,14 @@ credentials:
               privateKey: '${Node-Integration-Key}'
           scope: GLOBAL
           username: 'ubuntu'
+      - basicSSHUserPrivateKey:
+          description: 'EC2 Instance Key'
+          id: 'EC2-Instance-Key'
+          privateKeySource:
+            directEntry:
+              privateKey: '/ec2/keypair/${EC2KeyPairName}'
+          scope: GLOBAL
+          username: 'ec2-user'
       - usernamePassword:
           description: "AWS IAM-Admin Credential"
           id: "IAM-Admin-Credential"
