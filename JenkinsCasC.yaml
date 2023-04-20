@@ -1,5 +1,13 @@
 # Dependency:
-# Replace '<ENV_ALB_DNS>' placeholder with ALB DNS name of Jenkins Master
+# Replace following placeholder
+# <ENV_ALB_DNS> - ALB DNS name of Jenkins Master
+# Ec2KeyPairID - EkyPair ID with which Jenkins master and Agent will be launched
+# AWS_REGION - AWS Region in which Jenkins and it's agent is running
+# AL2_X86_64_AMI_ID - AL2 AMI ID for x86_64
+# AL2_ARM64_AMI_ID - AL2 AMI ID for arm64
+# JENKINS_AGENT_INSTANCE_PROFILE - Instance profile to be used with Jenkins Agent
+# JENKINS_AGENT_SG - SG that Jenkins Agent will use
+# JENKINS_AGENT_SUBNETS - Subnets in which Jenkins Agent will launched
 # The plugin will default to looking for a single config file in $JENKINS_HOME/jenkins.yaml
 credentials:
   system:
@@ -31,7 +39,7 @@ credentials:
           id: 'EC2-Instance-Key'
           privateKeySource:
             directEntry:
-              privateKey: '/ec2/keypair/${EC2KeyPairName}'
+              privateKey: '/ec2/keypair/Ec2KeyPairID'
           scope: GLOBAL
           username: 'ec2-user'
       - usernamePassword:
@@ -47,6 +55,106 @@ jenkins:
   authorizationStrategy:
     loggedInUsersCanDoAnything:
       allowAnonymousRead: false
+  clouds:
+  - amazonEC2:
+      cloudName: "Amazon EC2 workers"
+      instanceCapStr: "5"
+      region: "AWS_REGION"
+      sshKeysCredentialsId: "EC2-Instance-Key"
+      templates:
+      - ami: "AL2_X86_64_AMI_ID"
+        amiType:
+          unixData:
+            sshPort: "22"
+        associatePublicIp: false
+        connectBySSHProcess: true
+        connectionStrategy: PRIVATE_IP
+        deleteRootOnTermination: true
+        description: "Linux x86_64 AL2 AMI"
+        ebsEncryptRootVolume: DEFAULT
+        ebsOptimized: false
+        hostKeyVerificationStrategy: 'OFF'
+        iamInstanceProfile: "JENKINS_AGENT_INSTANCE_PROFILE"
+        idleTerminationMinutes: "30"
+        javaPath: "java"
+        labelString: "aws_ec2_linux_al2_x86_64"
+        maxTotalUses: -1
+        metadataEndpointEnabled: true
+        metadataHopsLimit: 1
+        metadataTokensRequired: false
+        minimumNumberOfInstances: 0
+        minimumNumberOfSpareInstances: 0
+        mode: EXCLUSIVE
+        monitoring: false
+        numExecutors: 14
+        remoteAdmin: "ec2-user"
+        remoteFS: "./jenkinsAgent"
+        securityGroups: "JENKINS_AGENT_SG"
+        stopOnTerminate: false
+        subnetId: "JENKINS_AGENT_SUBNETS"
+        t2Unlimited: false
+        tenancy: Default
+        type: C5Xlarge
+        useEphemeralDevices: false
+        userData: |-
+          #!/bin/bash
+          yum install docker git jq -y
+          usermod -aG docker ec2-user
+          systemctl enable docker --now
+          mkdir /home/ec2-user/.ssh
+          cat <<EOF > /home/ec2-user/.ssh/config
+          Host *
+              StrictHostKeyChecking no
+          EOF
+          chown -R ec2-user:ec2-user /home/ec2-user/.ssh
+          chmod 700 /home/ec2-user/.ssh
+      - ami: "AL2_ARM64_AMI_ID"
+        amiType:
+          unixData:
+            sshPort: "22"
+        associatePublicIp: false
+        connectBySSHProcess: true
+        connectionStrategy: PRIVATE_IP
+        deleteRootOnTermination: false
+        description: "Linux arm64 AL2 AMI"
+        ebsEncryptRootVolume: DEFAULT
+        ebsOptimized: false
+        hostKeyVerificationStrategy: 'OFF'
+        iamInstanceProfile: "JENKINS_AGENT_INSTANCE_PROFILE"
+        idleTerminationMinutes: "30"
+        javaPath: "java"
+        labelString: "aws_ec2_linux_al2_arm64"
+        maxTotalUses: -1
+        metadataEndpointEnabled: true
+        metadataHopsLimit: 1
+        metadataTokensRequired: false
+        minimumNumberOfInstances: 0
+        minimumNumberOfSpareInstances: 0
+        mode: EXCLUSIVE
+        monitoring: false
+        numExecutors: 1
+        remoteAdmin: "ec2-user"
+        remoteFS: "./jenkins"
+        securityGroups: "JENKINS_AGENT_SG"
+        stopOnTerminate: false
+        subnetId: "JENKINS_AGENT_SUBNETS"
+        t2Unlimited: false
+        tenancy: Default
+        type: C6gXlarge
+        useEphemeralDevices: false
+        userData: |-
+          #!/bin/bash
+          yum install docker git jq -y
+          usermod -aG docker ec2-user
+          systemctl enable docker --now
+          mkdir /home/ec2-user/.ssh
+          cat <<EOF > /home/ec2-user/.ssh/config
+          Host *
+              StrictHostKeyChecking no
+          EOF
+          chown -R ec2-user:ec2-user /home/ec2-user/.ssh
+          chmod 700 /home/ec2-user/.ssh
+      useInstanceProfileForCredentials: true
   crumbIssuer:
     standard:
       excludeClientIPFromCrumb: false
