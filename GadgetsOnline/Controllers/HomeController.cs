@@ -15,7 +15,7 @@ namespace GadgetsOnline.Controllers
         {
             inventory = new Inventory();
             var products = inventory.GetBestSellers(6);
-            ViewBag.Hostname = "; Node: " + Environment.MachineName;
+            ViewBag.Hostname = "; Node: " + GetMetadataValue("hostname");
             ViewBag.AvailabilityZone = "; AZ: " + GetMetadataValue("placement/availability-zone");
             ViewBag.InstanceType = "; Instance-Type: " + GetMetadataValue("instance-type");
             return View(products);
