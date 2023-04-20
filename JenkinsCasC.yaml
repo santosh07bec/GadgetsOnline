@@ -134,7 +134,7 @@ jenkins:
         monitoring: false
         numExecutors: 1
         remoteAdmin: "ec2-user"
-        remoteFS: "./jenkins"
+        remoteFS: "./jenkinsAgent"
         securityGroups: "JENKINS_AGENT_SG"
         stopOnTerminate: false
         subnetId: "JENKINS_AGENT_SUBNETS"
