@@ -7,43 +7,108 @@ pipeline {
     agent any
     
     stages {
-        stage('Install') {
+        stage('Check_or_Install_prerequisites_on_x86_agent') {
+            agent {
+                label 'aws_ec2_linux_al2_x86_64'
+            }
             steps {
                 echo 'Check for docker and buildx plugin and install if not already installed.'
                 sh '''
                 # env
                 if ! which docker >/dev/null 2>&1; then sudo yum install docker -y; fi
-                if ! [[ $(systemctl show --property ActiveState docker) =~ \'active\' ]]; then sudo systemctl enable docker --now; fi
+                if ! [[ $(systemctl show --property SubState docker) =~ \'running\' ]]; then sudo systemctl enable docker --now; fi
+                if ! id | grep -i docker >/dev/null 2>&1; then sudo usermod -aG docker $USER; fi
                 if ! docker buildx ls >/dev/null 2>&1; then
                   sudo docker run -d -it docker/buildx-bin bash >/dev/null 2>&1 || true
                   CONTAINER=$(sudo docker ps -a --filter=ancestor=docker/buildx-bin | awk \'{print $1}\' | tail -1)
                   mkdir -p /usr/libexec/docker/cli-plugins/
                   sudo docker cp $CONTAINER:/buildx /usr/libexec/docker/cli-plugins/docker-buildx
-                  sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+                  # sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
                   sudo docker buildx ls
                 fi'''
             }
         }
+        stage('Check_or_Install_prerequisites_on_arm_agent') {
+            agent {
+                label 'aws_ec2_linux_al2_arm64'
+            }
+            steps {
+                echo 'Check for docker and buildx plugin and install if not already installed.'
+                sh '''
+                # env
+                if ! which docker >/dev/null 2>&1; then sudo yum install docker -y; fi
+                if ! [[ $(systemctl show --property SubState docker) =~ \'running\' ]]; then sudo systemctl enable docker --now; fi
+                if ! id | grep -i docker >/dev/null 2>&1; then sudo usermod -aG docker $USER; fi
+                if ! docker buildx ls >/dev/null 2>&1; then
+                  sudo docker run -d -it docker/buildx-bin bash >/dev/null 2>&1 || true
+                  CONTAINER=$(sudo docker ps -a --filter=ancestor=docker/buildx-bin | awk \'{print $1}\' | tail -1)
+                  mkdir -p /usr/libexec/docker/cli-plugins/
+                  sudo docker cp $CONTAINER:/buildx /usr/libexec/docker/cli-plugins/docker-buildx
+                  # sudo docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+                  sudo docker buildx ls
+                fi'''
+            }
+        }
+        stage ('get_x86_agent_ip') {
+            agent {
+                label 'aws_ec2_linux_al2_x86_64'
+            }
+            steps {
+                script{
+                    def priv_ip = sh(returnStdout: true, script: 'echo $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)').trim()
+                    env.X86_AGENT_PRIVATE_IP = priv_ip
+                }
+            }
+        }
         stage('Build') {
+            agent {
+                label 'aws_ec2_linux_al2_arm64'
+            }
             steps {
                 echo 'Building Docker Image'
-                sh '''
-                REGION=$(curl -s 169.254.169.254/latest/meta-data/placement/region)
-                DOCKER='docker --config ./docker-buildx-config'
-                $DOCKER buildx create --name jenkins --use
-                $DOCKER buildx inspect --bootstrap
-                $DOCKER buildx ls
-                aws ecr get-login-password --region $REGION | $DOCKER login --username AWS --password-stdin $ECR_Repo
-                $DOCKER buildx build -t $ECR_Repo:$BUILD_ID --platform linux/amd64,linux/arm64 --builder jenkins \
-                --build-arg BUILDKIT_MULTI_PLATFORM=1 -f ./GadgetsOnline/Dockerfile --push .
-                '''
+                script {
+                    withCredentials([
+                        sshUserPrivateKey(
+                            credentialsId: 'EC2-Instance-Key',
+                            keyFileVariable: 'keyFile'
+                        )
+                    ]) {
+                        sh '''
+                        cat $keyFile > ~/.ssh/id_rsa
+                        chmod 600 ~/.ssh/id_rsa
+                        '''
+                    }
+                    def amd_ip = env.X86_AGENT_PRIVATE_IP
+                    echo "AMD Private IP: ${amd_ip}"
+                    sh '''
+                    REGION=$(curl -s 169.254.169.254/latest/meta-data/placement/region)
+                    BUILDER_NAME='jenkins'
+                    DOCKER='docker --config ./docker-buildx-config'
+                    $DOCKER -H ssh://ec2-user@$X86_AGENT_PRIVATE_IP info
+                    if ! $DOCKER buildx inspect $BUILDER_NAME > /dev/null 2>&1; then
+                        $DOCKER buildx create --name $BUILDER_NAME
+                        $DOCKER buildx create --name $BUILDER_NAME --driver docker-container --platform linux/amd64 ssh://ec2-user@$X86_AGENT_PRIVATE_IP --append
+                        $DOCKER buildx inspect --bootstrap --builder $BUILDER_NAME
+                        $DOCKER buildx use $BUILDER_NAME
+                    fi
+                    $DOCKER buildx ls
+                    aws ecr get-login-password --region $REGION | $DOCKER login --username AWS --password-stdin $ECR_Repo
+                    $DOCKER buildx build -t $ECR_Repo:$BUILD_ID --platform linux/amd64,linux/arm64 --builder jenkins \
+                    --build-arg BUILDKIT_MULTI_PLATFORM=1 -f ./GadgetsOnline/Dockerfile --push .
+                    '''
+                }
             }
         }
         stage('Test') {
+            agent {
+                label 'aws_ec2_linux_al2_arm64'
+            }
             steps {
                 echo 'Test 1: Checking if image is multi-arch'
                 sh '''
                 DOCKER='docker --config ./docker-buildx-config'
+                export AWS_REGION=$(curl -s 169.254.169.254/latest/meta-data/placement/region)
+                aws ecr get-login-password --region $AWS_REGION | $DOCKER login --username AWS --password-stdin $ECR_Repo
                 PLATFORMS=$($DOCKER buildx imagetools inspect $ECR_Repo:$BUILD_ID --format "{{json .Manifest}}" | jq ".manifests[].platform.architecture" | xargs)
                 if [[ $PLATFORMS =~ "arm" ]] && [[ $PLATFORMS =~ "amd" ]]; then
                   echo "Image is multi-arch. Test PASSED!!"
