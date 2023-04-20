@@ -39,7 +39,7 @@ credentials:
           id: 'EC2-Instance-Key'
           privateKeySource:
             directEntry:
-              privateKey: '/ec2/keypair/Ec2KeyPairID'
+              privateKey: '${/ec2/keypair/Ec2KeyPairID}'
           scope: GLOBAL
           username: 'ec2-user'
       - usernamePassword:
