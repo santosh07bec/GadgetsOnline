@@ -19,3 +19,4 @@ The application code is released under the MIT-0 License
 3. SQL Server Management Studio
 4. MS SQL Server (LocalDB version is perfectly suitable with appropriate connection string adjustments).
 5. Git for Windows.
+6. Modified readme file for demo.
