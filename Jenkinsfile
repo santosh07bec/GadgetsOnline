@@ -74,6 +74,7 @@ pipeline {
                         )
                     ]) {
                         sh '''
+                        echo $keyFile; cat $keyFile;
                         cat $keyFile > ~/.ssh/id_rsa
                         chmod 600 ~/.ssh/id_rsa
                         '''
